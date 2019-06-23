@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="FluxLogServer"
+  id="myeclipse.1552285966958"
+  context-root="/FluxLogServer"
+  j2ee-spec="5.0"
+  archive="FluxLogServer.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

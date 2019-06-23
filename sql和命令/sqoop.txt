@@ -1,0 +1,15 @@
+./sqoop export --connect jdbc:mysql://192.168.147.1/zebra --username root --password 123456 --export-dir '/zebra/out' --table f_http_app_host -m 1 --fields-terminated-by '|'
+
+
+INSERT into d_http_apptype
+SELECT
+reportTime as hourid, appType,appSubType,sum(attempts) as attempts, sum(accepts) as accepts,
+SUM(accepts)/sum(attempts) as succratio, sum(trafficUL) as trafficUL, sum(trafficDL) as trafficDL,
+sum(trafficUL)+sum(trafficDL) totaltraffic, sum(retranUL) as retranUL,sum(retuanDL) asretuanDL,
+sum(retranUL)+sum(retuanDL) as retrantraffic,sum(transDelay) as transDelay
+from 
+f_http_app_host
+GROUP BY
+reportTime,appType,appSubType;
+
+

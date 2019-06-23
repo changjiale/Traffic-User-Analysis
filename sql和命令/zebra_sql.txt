@@ -1,0 +1,271 @@
+===================================================================
+#创建数据库
+create database zebra;
+use zebra;
+#创建数据总表
+create table F_HTTP_APP_HOST(
+	reporttime datetime,	
+	cellid varchar(20),
+	apptype int,
+	appsubtype int,
+	userip varchar(20),
+	userport int,
+	appserverip varchar(20),
+	appserverport int,
+	host varchar(255),
+	attempts bigint,
+	accepts bigint,
+	trafficul bigint,
+	trafficdl bigint,
+	retranul bigint,
+	retrandl bigint,
+	transdelay bigint
+);
+
+
+#创建应用欢迎度表
+create table D_H_HTTP_APPTYPE(
+	hourid datetime,
+	apptype int,
+	appsubtype int,
+	attempts bigint,
+	accepts bigint,
+	succratio bigint,
+	trafficul bigint,
+	trafficdl bigint,
+	totaltraffic bigint,
+	retranul bigint,
+	retrandl bigint,
+	retrantraffic bigint,
+	transdelay bigint
+);
+
+#创建各网站表现表
+create table D_H_HTTP_HOST(
+	hourid datetime,
+	host varchar(255),
+	appserverip varchar(20),
+	attempts bigint,
+	accepts bigint,
+	succratio bigint,
+	trafficul bigint,
+	trafficdl bigint,
+	totaltraffic bigint,
+	retranul bigint,
+	retrandl bigint,
+	retrantraffic bigint,
+	transdelay bigint
+);
+
+#创建小区HTTP上网能力表
+create table D_H_HTTP_CELLID(
+	hourid datetime,
+	cellid varchar(20),
+	attempts bigint,
+	accepts bigint,
+	succratio bigint,
+	trafficul bigint,
+	trafficdl bigint,
+	totaltraffic bigint,
+	retranul bigint,
+	retrandl bigint,
+	retrantraffic bigint,
+	transdelay bigint
+);
+
+#创建小区上网喜好表
+create table D_H_HTTP_CELLID_HOST(
+	hourid datetime,
+	cellid varchar(20),
+	host varchar(255),
+	attempts bigint,
+	accepts bigint,
+	succratio bigint,
+	trafficul bigint,
+	trafficdl bigint,
+	totaltraffic bigint,
+	retranul bigint,
+	retrandl bigint,
+	retrantraffic bigint,
+	transdelay bigint
+);
+===================================================================
+insert into D_H_HTTP_APPTYPE
+	select 
+		reporttime as hourid,
+		apptype,
+		appsubtype,
+		sum(attempts) as attempts,
+		sum(accepts) as accepts,
+		sum(accepts)/sum(attempts) as succRatio,
+		sum(trafficul) as trafficul,
+		sum(trafficdl) as trafficdl,
+		sum(trafficul)+sum(trafficdl) as totaltraffic,
+		sum(retranul) as retranul,
+		sum(retrandl) as retrandl,
+		sum(retranul)+sum(retrandl) as retrantraffic,
+		sum(transdelay) as transdelay
+	from 
+		F_HTTP_APP_HOST
+	group by 
+		reporttime,apptype,appsubtype
+;
+
+insert into D_H_HTTP_HOST
+	select 
+		reporttime as hourid,
+		host,
+		appserverip,
+		sum(attempts) as attempts,
+		sum(accepts) as accepts,
+		sum(accepts)/sum(attempts) as succRatio,
+		sum(trafficul) as trafficul,
+		sum(trafficdl) as trafficdl,
+		sum(trafficul)+sum(trafficdl) as totaltraffic,
+		sum(retranul) as retranul,
+		sum(retrandl) as retrandl,
+		sum(retranul)+sum(retrandl) as retrantraffic,
+		sum(transdelay) as transdelay
+	from 
+		F_HTTP_APP_HOST
+	group by 
+		reporttime,host,appserverip
+;
+
+insert into D_H_HTTP_CELLID
+	select 
+		reporttime as hourid,
+		cellid,
+		sum(attempts) as attempts,
+		sum(accepts) as accepts,
+		sum(accepts)/sum(attempts) as succRatio,
+		sum(trafficul) as trafficul,
+		sum(trafficdl) as trafficdl,
+		sum(trafficul)+sum(trafficdl) as totaltraffic,
+		sum(retranul) as retranul,
+		sum(retrandl) as retrandl,
+		sum(retranul)+sum(retrandl) as retrantraffic,
+		sum(transdelay) as transdelay
+	from 
+		F_HTTP_APP_HOST
+	group by 
+		reporttime,cellid
+;
+
+insert into D_H_HTTP_CELLID_HOST
+	select 
+		reporttime as hourid,
+		cellid,
+		host,
+		sum(attempts) as attempts,
+		sum(accepts) as accepts,
+		sum(accepts)/sum(attempts) as succRatio,
+		sum(trafficul) as trafficul,
+		sum(trafficdl) as trafficdl,
+		sum(trafficul)+sum(trafficdl) as totaltraffic,
+		sum(retranul) as retranul,
+		sum(retrandl) as retrandl,
+		sum(retranul)+sum(retrandl) as retrantraffic,
+		sum(transdelay) as transdelay
+	from 
+		F_HTTP_APP_HOST
+	group by 
+		reporttime,cellid,host
+;
+
+===================================================================
+#总应用欢迎度前10
+	select 
+		apptype,
+		DATE_FORMAT(hourid,'%Y%m%d') dateid,
+		sum(totalTraffic) 
+	from 
+		D_H_HTTP_APPTYPE 
+	group by 
+		apptype,dateid
+	having
+		dateid ='20150615'
+	order by
+		sum(totaltraffic) desc
+	limit 0,10
+	;
+	
+	
+#子应用欢迎度前10
+	select 
+		apptype,
+		appsubtype,
+		DATE_FORMAT(hourid,'%Y%m%d') dateid,
+		sum(totalTraffic) 
+	from 
+		D_H_HTTP_APPTYPE 
+	group by 
+		apptype,appsubtype,dateid
+	having
+		dateid='20150615'
+		and
+		apptype=1
+	order by
+		sum(totaltraffic) desc
+	limit 0,10
+	;
+
+#网站表现前10
+	select 
+		host,
+		DATE_FORMAT(hourid,'%Y%m%d') dateid,
+		sum(attempts) 
+	from 
+		D_H_HTTP_HOST 
+	group by 
+		host,dateid
+	having
+		dateid='20150615'
+	order by
+		sum(attempts) desc
+	limit 0,10
+	;
+
+#单网站一天表现
+	select 
+		host,
+		hourid,
+		sum(attempts)
+	from 
+		D_H_HTTP_HOST 
+	group by 
+		host,hourid
+	having
+		host='apilocate.amap.com'
+	order by
+		attempts desc
+	;
+
+#总小区上网能力
+	select 
+		DATE_FORMAT(hourid,'%Y%m%d') dateid,
+		cellid,
+		sum(totaltraffic)
+	from	
+		D_H_HTTP_CELLID
+	group by
+		dateid,cellid
+	having
+		dateid='20150615'
+	limit 0,10;
+
+#指定小区上网能力
+	select 
+		hourid,
+		cellid,
+		sum(totaltraffic)
+	from	
+		D_H_HTTP_CELLID
+	group by
+		cellid,hourid
+	having
+		DATE_FORMAT(hourid,'%Y%m%d')='20150615'
+		and
+		cellid='131432478';
+
+============================================================
